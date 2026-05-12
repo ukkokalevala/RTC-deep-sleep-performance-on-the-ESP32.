@@ -1,0 +1,56 @@
+// ESP32 Deep Sleep + RTC Wakeup
+// LED on GPIO 5
+// LED ON while awake
+// LED OFF during deep sleep
+
+#define LED_PIN 5
+
+// Sleep time in seconds
+#define TIME_TO_SLEEP 10
+
+RTC_DATA_ATTR int bootCount = 0;
+
+void setup() {
+  pinMode(LED_PIN, OUTPUT);
+
+  Serial.begin(115200);
+  delay(1000);
+
+  // Count wakeups
+  bootCount++;
+
+  Serial.println();
+  Serial.println("Boot number: " + String(bootCount));
+
+  // Turn LED ON when awake
+  digitalWrite(LED_PIN, HIGH);
+
+  // Show wakeup reason
+  esp_sleep_wakeup_cause_t wakeupReason;
+  wakeupReason = esp_sleep_get_wakeup_cause();
+
+  if (wakeupReason == ESP_SLEEP_WAKEUP_TIMER) {
+    Serial.println("Woke up from RTC timer");
+  } else {
+    Serial.println("Normal startup");
+  }
+
+  delay(5000); // LED stays ON for 5 seconds
+
+  Serial.println("Going to sleep...");
+
+  // Turn LED OFF before sleep
+  digitalWrite(LED_PIN, LOW);
+
+  // Enable RTC timer wakeup
+  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * 1000000ULL);
+
+  delay(100);
+
+  // Enter deep sleep
+  esp_deep_sleep_start();
+}
+
+void loop() {
+  // Not used
+}
